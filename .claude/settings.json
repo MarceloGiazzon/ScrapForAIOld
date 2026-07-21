@@ -1,0 +1,17 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npx tsc *)",
+      "Bash(node run-build.mjs)",
+      "Bash(grep -n '\\\\$targetUrl' quickstart.html)",
+      "PowerShell(Start-Process \"d:\\\\WorkSpace\\\\ScrapForAILegacy\\\\_userManual\\\\index.html\")",
+      "Bash(node -e ' *)",
+      "Bash(grep -n '^};$' \"C:\\\\Users\\\\Marcelo\\\\AppData\\\\Local\\\\Temp\\\\claude\\\\d--WorkSpace-ScrapForAILegacy\\\\4ffd0e1e-e1b5-4db2-b281-ac88cf4844ac\\\\scratchpad\\\\content.mjs\")",
+      "Bash(rm -f index.html installation.html quickstart.html security.html api-reference.html routine-guide.html step-actions.html examples.html dom-inspection.html artifacts.html schemas.html docker-tunnel.html development.html troubleshooting.html glossary.html search-index-old.js)",
+      "Bash(rm -f assets/search-index.js)",
+      "Bash(node run-i18n-build.mjs)",
+      "Bash(xargs -I {} head -30 {})",
+      "Bash(xargs grep -l \"category\\\\|description\")"
+    ]
+  }
+}

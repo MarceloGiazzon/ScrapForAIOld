@@ -1,0 +1,157 @@
+PS D:\WorkSpace\NPDev\NPDev_General> $Migration = $SqlFiles |
+>>   Where-Object {
+>>     $content = Get-Content -LiteralPath $_.FullName -Raw
+>>     $content -match 'ADD CONSTRAINT|FOREIGN KEY|DO \$\$|CREATE TABLE|UNIQUE'
+>>   } |
+>>   Sort-Object LastWriteTime -Descending |
+>>   Select-Object -First 1
+PS D:\WorkSpace\NPDev\NPDev_General>
+PS D:\WorkSpace\NPDev\NPDev_General> if (-not $Migration) {
+>>   Get-ChildItem -Path $GeneratedAppRoot -Recurse -File |
+>>     Select-Object FullName, Length |
+>>     Sort-Object FullName |
+>>     Out-File -FilePath (Join-Path $EvidenceRoot '04_all_generated_files_when_no_sql_migration.txt') -Encoding utf8
+>>
+>>   throw "No generated SQL migration containing FK/constraint SQL was found. Check 03_invoicebonds_sql_files.txt, 04_invoicebonds_signal_hits.txt, and 04_all_generated_files_when_no_sql_migration.txt."
+>> }
+PS D:\WorkSpace\NPDev\NPDev_General>
+PS D:\WorkSpace\NPDev\NPDev_General> Copy-Item -LiteralPath $Migration.FullName -Destination (Join-Path $EvidenceRoot 'selected_invoicebonds_migration.sql') -Force
+PS D:\WorkSpace\NPDev\NPDev_General>
+PS D:\WorkSpace\NPDev\NPDev_General> "Migration=$($Migration.FullName)" | Tee-Object -FilePath (Join-Path $EvidenceRoot '05_selected_invoicebonds_migration.txt')
+Migration=D:\WorkSpace\NPDev\Build\generated-finalapps\invoicebonds\ArtifactNP\src\main\resources\db\schema-realization\V1__npdev_schema_realization.sql
+PS D:\WorkSpace\NPDev\NPDev_General>
+PS D:\WorkSpace\NPDev\NPDev_General> Write-Host "Selected migration:"
+Selected migration:
+PS D:\WorkSpace\NPDev\NPDev_General> Write-Host $Migration.FullName
+D:\WorkSpace\NPDev\Build\generated-finalapps\invoicebonds\ArtifactNP\src\main\resources\db\schema-realization\V1__npdev_schema_realization.sql
+PS D:\WorkSpace\NPDev\NPDev_General> $EvidenceRoot = 'D:\WorkSpace\NPDev_General__OutsideRepo\pack-bond-db-proof_discovery_20260615_050817'
+PS D:\WorkSpace\NPDev\NPDev_General> $SelectedMigration = Join-Path $EvidenceRoot 'selected_invoicebonds_migration.sql'
+PS D:\WorkSpace\NPDev\NPDev_General>
+PS D:\WorkSpace\NPDev\NPDev_General> if (-not (Test-Path -LiteralPath $SelectedMigration)) {
+>>   throw "Missing selected migration: $SelectedMigration"
+>> }
+PS D:\WorkSpace\NPDev\NPDev_General>
+PS D:\WorkSpace\NPDev\NPDev_General> $InvalidConstraintHits = Select-String -Path $SelectedMigration -Pattern 'ADD CONSTRAINT IF NOT EXISTS' -SimpleMatch
+PS D:\WorkSpace\NPDev\NPDev_General>
+PS D:\WorkSpace\NPDev\NPDev_General> $InvalidConstraintHits |
+>>   Format-Table Path, LineNumber, Line -AutoSize |
+>>   Tee-Object -FilePath (Join-Path $EvidenceRoot '06_invalid_constraint_search.log')
+
+Path                                                                                                                     LineNumber Line
+----                                                                                                                     ---------- ----
+D:\WorkSpace\NPDev_General__OutsideRepo\pack-bond-db-proof_discovery_20260615_050817\selected_invoicebonds_migration.sql        247 ALTER TABLE products ADD CONSTRAINT IF NOT EXISTS uq_products_sku UNIQUE (sku);
+D:\WorkSpace\NPDev_General__OutsideRepo\pack-bond-db-proof_discovery_20260615_050817\selected_invoicebonds_migration.sql        259 ALTER TABLE invoices ADD CONSTRAINT IF NOT EXISTS fk_invoices_approved_by_user_id FOREIGN KEY (appro...
+D:\WorkSpace\NPDev_General__OutsideRepo\pack-bond-db-proof_discovery_20260615_050817\selected_invoicebonds_migration.sql        260 ALTER TABLE invoices ADD CONSTRAINT IF NOT EXISTS fk_invoices_user_id FOREIGN KEY (user_id) REFERENC...
+D:\WorkSpace\NPDev_General__OutsideRepo\pack-bond-db-proof_discovery_20260615_050817\selected_invoicebonds_migration.sql        261 ALTER TABLE invoiceitems ADD CONSTRAINT IF NOT EXISTS fk_invoiceitems_invoice_id FOREIGN KEY (invoic...
+D:\WorkSpace\NPDev_General__OutsideRepo\pack-bond-db-proof_discovery_20260615_050817\selected_invoicebonds_migration.sql        262 ALTER TABLE invoiceitems ADD CONSTRAINT IF NOT EXISTS fk_invoiceitems_product_sku FOREIGN KEY (produ...
+D:\WorkSpace\NPDev_General__OutsideRepo\pack-bond-db-proof_discovery_20260615_050817\selected_invoicebonds_migration.sql        263 ALTER TABLE invoicenotifications ADD CONSTRAINT IF NOT EXISTS fk_invoicenotifications_invoice_id FOR...
+
+
+PS D:\WorkSpace\NPDev\NPDev_General>
+PS D:\WorkSpace\NPDev\NPDev_General> if ($InvalidConstraintHits) {
+>>   throw "Generated migration still contains PostgreSQL-invalid ADD CONSTRAINT IF NOT EXISTS."
+>> }
+Generated migration still contains PostgreSQL-invalid ADD CONSTRAINT IF NOT EXISTS.
+No linha:2 caractere:3
++   throw "Generated migration still contains PostgreSQL-invalid ADD CO ...
++   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (Generated migra... IF NOT EXISTS.:String) [], RuntimeException
+    + FullyQualifiedErrorId : Generated migration still contains PostgreSQL-invalid ADD CONSTRAINT IF NOT EXISTS.
+
+PS D:\WorkSpace\NPDev\NPDev_General>
+PS D:\WorkSpace\NPDev\NPDev_General> Select-String -Path $SelectedMigration -Pattern 'DO \$\$','ADD CONSTRAINT','FOREIGN KEY','UNIQUE','ON DELETE','ON UPDATE','sku_id','product_sku','invoice' |
+>>   Format-Table LineNumber, Line -AutoSize |
+>>   Tee-Object -FilePath (Join-Path $EvidenceRoot '07_selected_migration_relevant_fragments.log')
+
+LineNumber Line
+---------- ----
+       163 CREATE UNIQUE INDEX IF NOT EXISTS ux_npdev_scheduled_event_schedule_key ON npdev_scheduled_event (schedule_key);
+       209 CREATE TABLE IF NOT EXISTS invoices (
+       212   invoice_number VARCHAR(255) NOT NULL,
+       219 CREATE UNIQUE INDEX IF NOT EXISTS ux_invoices_invoice_number ON invoices (invoice_number);
+       221 CREATE TABLE IF NOT EXISTS invoiceitems (
+       223   invoice_id UUID NOT NULL,
+       225   product_sku VARCHAR(255) NOT NULL,
+       231 CREATE TABLE IF NOT EXISTS invoicenotifications (
+       233   invoice_id UUID NOT NULL,
+       247 ALTER TABLE products ADD CONSTRAINT IF NOT EXISTS uq_products_sku UNIQUE (sku);
+       257 CREATE UNIQUE INDEX IF NOT EXISTS ux_users_email ON users (email);
+       259 ALTER TABLE invoices ADD CONSTRAINT IF NOT EXISTS fk_invoices_approved_by_user_id FOREIGN KEY (approved_by_user_id) REFERENCES users (id) ON DELETE SET NULL;
+       260 ALTER TABLE invoices ADD CONSTRAINT IF NOT EXISTS fk_invoices_user_id FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE RESTRICT;
+       261 ALTER TABLE invoiceitems ADD CONSTRAINT IF NOT EXISTS fk_invoiceitems_invoice_id FOREIGN KEY (invoice_id) REFERENCES invoices (id) ON DELETE CASCADE;
+       262 ALTER TABLE invoiceitems ADD CONSTRAINT IF NOT EXISTS fk_invoiceitems_product_sku FOREIGN KEY (product_sku) REFERENCES products (sku) ON UPDATE CASCADE ON DELETE RESTRICT;
+       263 ALTER TABLE invoicenotifications ADD CONSTRAINT IF NOT EXISTS fk_invoicenotifications_invoice_id FOREIGN KEY (invoice_id) REFERENCES invoices (id) ON DELETE CASCADE;
+
+
+PS D:\WorkSpace\NPDev\NPDev_General>
+PS D:\WorkSpace\NPDev\NPDev_General> Write-Host "Selected invoicebonds migration passed invalid-syntax source check."
+Selected invoicebonds migration passed invalid-syntax source check.
+PS D:\WorkSpace\NPDev\NPDev_General>
+
+
+
+
+
+
+
+The generated-app proof failed.
+
+Build-AppGenApp.ps1 generated invoicebonds successfully, but the actual generated schema realization SQL still contains PostgreSQL-invalid `ALTER TABLE ... ADD CONSTRAINT IF NOT EXISTS` in:
+
+D:\WorkSpace\NPDev\Build\generated-finalapps\invoicebonds\ArtifactNP\src\main\resources\db\schema-realization\V1__npdev_schema_realization.sql
+D:\WorkSpace\NPDev\Build\generated-finalapps\invoicebonds\App\npdev-generated\src\main\resources\db\schema-realization\V1__npdev_schema_realization.sql
+
+Confirmed invalid lines:
+- 247: products unique constraint
+- 259: invoices approved_by_user_id FK
+- 260: invoices user_id FK
+- 261: invoiceitems invoice_id FK
+- 262: invoiceitems product_sku FK, including ON UPDATE CASCADE ON DELETE RESTRICT
+- 263: invoicenotifications invoice_id FK
+
+This means the actual generator runtime used by:
+D:\WorkSpace\NPDev\NPDev_General\scripts\appgen\Build-AppGenApp.ps1
+
+is still emitting the old syntax, or another SQL emission path remains unfixed.
+
+Investigate and fix concretely:
+
+1. Trace which class/jar writes:
+   db/schema-realization/V1__npdev_schema_realization.sql
+
+2. Confirm whether Build-AppGenApp.ps1 uses:
+   D:\WorkSpace\NPDev\AppGen\generator-runtime\current
+
+3. Ensure the repaired SchemaRealizationEmitter/FlywayEmitter code is compiled and copied into:
+   D:\WorkSpace\NPDev\AppGen\generator-runtime\current
+
+4. Search the full source and prepared runtime source/jars if possible for:
+   ADD CONSTRAINT IF NOT EXISTS
+
+5. Remove this invalid syntax from every real generation path.
+
+6. Regenerate invoice-bonds-demo and prove the generated SQL no longer contains:
+   ADD CONSTRAINT IF NOT EXISTS
+
+7. Only after that, rerun PostgreSQL migration proof.
+
+Do not treat unit tests as sufficient. The acceptance criterion is the actual generated file:
+D:\WorkSpace\NPDev\Build\generated-finalapps\invoicebonds\ArtifactNP\src\main\resources\db\schema-realization\V1__npdev_schema_realization.sql
+
+must not contain `ADD CONSTRAINT IF NOT EXISTS`.
+
+
+
+
+
+
+
+Evidence:
+
+$SelectedMigration = 'D:\WorkSpace\NPDev_General__OutsideRepo\pack-bond-db-proof_discovery_20260615_050817\selected_invoicebonds_migration.sql'
+
+Select-String `
+  -Path $SelectedMigration `
+  -Pattern 'ADD CONSTRAINT IF NOT EXISTS' `
+  -SimpleMatch |
+  Format-Table Path, LineNumber, Line -AutoSize

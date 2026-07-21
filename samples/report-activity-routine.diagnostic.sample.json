@@ -1,0 +1,123 @@
+{
+  "scenarioName": "diagnostic report activity - CONTROL MUESTRAS",
+  "targetUrl": "https://dev.puntoexe.com.uy/ECOMETALESJavaSQLServer/com.ecometales.hwbwkw01",
+  "caller": {
+    "correlationId": "diagnostic-login-menu-001",
+    "source": "manual-diagnostic",
+    "metadata": {
+      "purpose": "diagnose login redirect and menu availability",
+      "notes": "Captures field state, URL timeline, login/page state, and menu candidates without clicking menu items."
+    }
+  },
+  "credentials": {
+    "loginUser": "SRIFFO",
+    "loginPassword": "sriffo1407"
+  },
+  "options": {
+    "trace": true,
+    "screenshots": "always",
+    "collectDomOnFailure": true
+  },
+  "steps": [
+    {
+      "id": "open-control-muestras",
+      "label": "Open CONTROL MUESTRAS protected page",
+      "action": "goto",
+      "url": "$targetUrl",
+      "timeoutMs": 30000
+    },
+    {
+      "id": "wait-for-login-form",
+      "label": "Wait for login form",
+      "action": "waitForSelector",
+      "selector": "#vUSER",
+      "state": "visible",
+      "timeoutMs": 15000
+    },
+    {
+      "id": "diagnose-login-form-before-fill",
+      "label": "Diagnose login form before fill",
+      "action": "evaluate",
+      "name": "loginFormBeforeFill",
+      "script": "return {\n  url: location.href,\n  title: document.title,\n  readyState: document.readyState,\n  loginFields: {\n    userExists: !!document.querySelector('#vUSER'),\n    passwordExists: !!document.querySelector('#vUSRPSWING'),\n    confirmExists: !!document.querySelector('#BTNENTER'),\n    userVisible: !!(document.querySelector('#vUSER')?.offsetWidth || document.querySelector('#vUSER')?.offsetHeight || document.querySelector('#vUSER')?.getClientRects().length),\n    passwordVisible: !!(document.querySelector('#vUSRPSWING')?.offsetWidth || document.querySelector('#vUSRPSWING')?.offsetHeight || document.querySelector('#vUSRPSWING')?.getClientRects().length),\n    confirmVisible: !!(document.querySelector('#BTNENTER')?.offsetWidth || document.querySelector('#BTNENTER')?.offsetHeight || document.querySelector('#BTNENTER')?.getClientRects().length)\n  },\n  forms: [...document.forms].map(f => ({\n    id: f.id,\n    name: f.name,\n    method: f.method,\n    action: f.getAttribute('action'),\n    target: f.target,\n    inputCount: f.querySelectorAll('input,textarea,select,button').length\n  })),\n  hiddenControls: [...document.querySelectorAll('input[type=\"hidden\"]')].slice(0, 80).map(e => ({\n    id: e.id,\n    name: e.name,\n    type: e.type,\n    valueLength: String(e.value || '').length,\n    hasValue: String(e.value || '').length > 0\n  }))\n};"
+    },
+    {
+      "id": "fill-login-user",
+      "label": "Fill Usuario",
+      "action": "fill",
+      "selector": "#vUSER",
+      "valueFromCredential": "loginUser",
+      "timeoutMs": 10000
+    },
+    {
+      "id": "fill-login-password",
+      "label": "Fill Password",
+      "action": "fill",
+      "selector": "#vUSRPSWING",
+      "valueFromCredential": "loginPassword",
+      "timeoutMs": 10000
+    },
+    {
+      "id": "diagnose-login-form-after-fill",
+      "label": "Verify values are present after fill without exposing password",
+      "action": "evaluate",
+      "name": "loginFormAfterFill",
+      "script": "const user = document.querySelector('#vUSER');\nconst pass = document.querySelector('#vUSRPSWING');\nconst btn = document.querySelector('#BTNENTER');\nreturn {\n  url: location.href,\n  activeElement: {\n    tag: document.activeElement?.tagName,\n    id: document.activeElement?.id,\n    name: document.activeElement?.getAttribute('name'),\n    type: document.activeElement?.getAttribute('type')\n  },\n  user: {\n    exists: !!user,\n    visible: !!(user?.offsetWidth || user?.offsetHeight || user?.getClientRects().length),\n    valueLength: String(user?.value || '').length,\n    hasValue: String(user?.value || '').length > 0\n  },\n  password: {\n    exists: !!pass,\n    visible: !!(pass?.offsetWidth || pass?.offsetHeight || pass?.getClientRects().length),\n    valueLength: String(pass?.value || '').length,\n    hasValue: String(pass?.value || '').length > 0\n  },\n  confirm: {\n    exists: !!btn,\n    visible: !!(btn?.offsetWidth || btn?.offsetHeight || btn?.getClientRects().length),\n    disabled: !!btn?.disabled,\n    value: btn?.value || btn?.innerText || ''\n  }\n};"
+    },
+    {
+      "id": "capture-before-submit",
+      "label": "Screenshot before submit",
+      "action": "screenshot",
+      "name": "before-submit"
+    },
+    {
+      "id": "submit-login",
+      "label": "Click Confirmar",
+      "action": "click",
+      "selector": "#BTNENTER",
+      "timeoutMs": 10000
+    },
+    {
+      "id": "watch-after-submit",
+      "label": "Watch URL and page state after submit",
+      "action": "watch",
+      "name": "afterSubmitTimeline",
+      "script": "return {\n  url: location.href,\n  title: document.title,\n  readyState: document.readyState,\n  loginVisible: !!(document.querySelector('#vUSER')?.offsetWidth || document.querySelector('#vUSER')?.offsetHeight || document.querySelector('#vUSER')?.getClientRects().length),\n  passwordVisible: !!(document.querySelector('#vUSRPSWING')?.offsetWidth || document.querySelector('#vUSRPSWING')?.offsetHeight || document.querySelector('#vUSRPSWING')?.getClientRects().length),\n  confirmVisible: !!(document.querySelector('#BTNENTER')?.offsetWidth || document.querySelector('#BTNENTER')?.offsetHeight || document.querySelector('#BTNENTER')?.getClientRects().length),\n  menuCandidateCount: document.querySelectorAll('[id*=\"gxui\"], [class*=\"gxui\"], [id*=\"menu\"], [class*=\"menu\"]').length,\n  bodyTextStart: document.body?.innerText?.replace(/\\s+/g, ' ').trim().slice(0, 300) || ''\n};",
+      "intervalMs": 500,
+      "durationMs": 8000
+    },
+    {
+      "id": "wait-after-submit",
+      "label": "Preserve time after submit before full diagnosis",
+      "action": "waitForElapsed",
+      "sinceStepId": "submit-login",
+      "minElapsedMs": 9000,
+      "timeoutMs": 10000
+    },
+    {
+      "id": "diagnose-after-submit",
+      "label": "Diagnose page after submit",
+      "action": "evaluate",
+      "name": "afterSubmitState",
+      "script": "const visible = (e) => !!(e && (e.offsetWidth || e.offsetHeight || e.getClientRects().length));\nconst textOf = (e) => String(e?.innerText || e?.value || e?.textContent || '').replace(/\\s+/g, ' ').trim();\nconst candidates = [...document.querySelectorAll('a,button,input,[role=\"button\"],[onclick],[id*=\"gxui\"],[class*=\"gxui\"],[id*=\"menu\"],[class*=\"menu\"],[id*=\"toolbar\"],[class*=\"toolbar\"]')]\n  .map((e, index) => ({\n    index,\n    tag: e.tagName,\n    id: e.id || '',\n    name: e.getAttribute('name') || '',\n    type: e.getAttribute('type') || '',\n    role: e.getAttribute('role') || '',\n    className: String(e.className || '').slice(0, 200),\n    text: textOf(e).slice(0, 200),\n    visible: visible(e),\n    disabled: !!e.disabled,\n    rect: (() => {\n      const r = e.getBoundingClientRect();\n      return { x: Math.round(r.x), y: Math.round(r.y), width: Math.round(r.width), height: Math.round(r.height) };\n    })()\n  }))\n  .filter(x => x.visible || x.text || x.id)\n  .slice(0, 200);\n\nconst loginUser = document.querySelector('#vUSER');\nconst loginPassword = document.querySelector('#vUSRPSWING');\n\nreturn {\n  url: location.href,\n  title: document.title,\n  readyState: document.readyState,\n  isLoginPage: !!loginUser || !!loginPassword || /Usuario|Password/i.test(document.body?.innerText || ''),\n  loginFieldState: {\n    userExists: !!loginUser,\n    userVisible: visible(loginUser),\n    userValueLength: String(loginUser?.value || '').length,\n    userHasValue: String(loginUser?.value || '').length > 0,\n    passwordExists: !!loginPassword,\n    passwordVisible: visible(loginPassword),\n    passwordValueLength: String(loginPassword?.value || '').length,\n    passwordHasValue: String(loginPassword?.value || '').length > 0\n  },\n  possibleErrorTexts: [...document.querySelectorAll('body *')]\n    .map(e => textOf(e))\n    .filter(t => t && /error|incorrect|invalid|invalido|inválido|senha|password|usuario|usuário|login|denegado|rechazado|fall[oó]|failed/i.test(t))\n    .slice(0, 50),\n  forms: [...document.forms].map(f => ({\n    id: f.id,\n    name: f.name,\n    method: f.method,\n    action: f.getAttribute('action'),\n    target: f.target,\n    inputCount: f.querySelectorAll('input,textarea,select,button').length\n  })),\n  visibleActionCandidates: candidates,\n  bodyText: (document.body?.innerText || '').replace(/\\s+/g, ' ').trim().slice(0, 3000)\n};"
+    },
+    {
+      "id": "capture-after-submit",
+      "label": "Screenshot after submit diagnosis",
+      "action": "screenshot",
+      "name": "after-submit"
+    },
+    {
+      "id": "collect-final-evidence",
+      "label": "Collect final evidence",
+      "action": "collect",
+      "what": [
+        "url",
+        "console",
+        "network",
+        "pageErrors",
+        "domText"
+      ]
+    }
+  ]
+}

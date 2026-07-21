@@ -1,0 +1,123 @@
+{
+  "scenarioName": "Scrollbar investigation - Seguridad General sub-menu",
+  "targetUrl": "https://dev.puntoexe.com.uy/ECOMETALESJavaSQLServer/com.ecometales.hwbwkw01",
+  "credentials": {
+    "loginUser": "SRIFFO",
+    "loginPassword": "sriffo1407"
+  },
+  "caller": {
+    "source": "manual-investigation",
+    "correlationId": "scrollbar-investigation-002"
+  },
+  "options": {
+    "headless": true,
+    "trace": false,
+    "screenshots": "onFailure",
+    "collectDomOnFailure": true
+  },
+  "steps": [
+    {
+      "id": "open-app",
+      "label": "Open app",
+      "action": "goto",
+      "url": "$targetUrl",
+      "timeoutMs": 30000,
+      "afterWaitFor": { "loadState": "domcontentloaded", "timeoutMs": 30000 }
+    },
+    {
+      "id": "wait-for-login-form",
+      "action": "waitForSelector",
+      "selector": "#vUSER",
+      "state": "visible",
+      "timeoutMs": 10000
+    },
+    {
+      "id": "fill-login-user",
+      "action": "fill",
+      "selector": "#vUSER",
+      "valueFromCredential": "loginUser",
+      "timeoutMs": 10000
+    },
+    {
+      "id": "blur-login-user",
+      "action": "press",
+      "selector": "#vUSER",
+      "key": "Tab",
+      "timeoutMs": 10000
+    },
+    {
+      "id": "fill-login-password",
+      "action": "fill",
+      "selector": "#vUSRPSWING",
+      "valueFromCredential": "loginPassword",
+      "timeoutMs": 10000
+    },
+    {
+      "id": "blur-login-password",
+      "action": "press",
+      "selector": "#vUSRPSWING",
+      "key": "Tab",
+      "timeoutMs": 10000
+    },
+    {
+      "id": "submit-login",
+      "action": "click",
+      "selector": "span[onclick*=\"BTNENTER\"]",
+      "timeoutMs": 10000,
+      "afterWaitFor": { "loadState": "domcontentloaded", "timeoutMs": 10000 }
+    },
+    {
+      "id": "gate-login-complete",
+      "label": "Fail fast if login did not reach the app",
+      "action": "waitForUrlContains",
+      "value": "hwbwkw01",
+      "timeoutMs": 15000
+    },
+    {
+      "id": "click-seguridad-general",
+      "label": "Click Seguridad General (top menu, first item)",
+      "action": "click",
+      "waitFor": {
+        "selector": "[id*=\"Gxui_toolbar1_btn_D         1-btnInnerEl\"]",
+        "state": "visible",
+        "timeoutMs": 20000
+      },
+      "selector": "[id*=\"Gxui_toolbar1_btn_D         1-btnInnerEl\"]",
+      "timeoutMs": 10000,
+      "afterWaitFor": { "loadState": "domcontentloaded", "timeoutMs": 10000 }
+    },
+    {
+      "id": "wait-submenu-settle",
+      "label": "Wait for sub-menu to fully populate",
+      "action": "waitForElapsed",
+      "sinceStepId": "click-seguridad-general",
+      "minElapsedMs": 3000,
+      "timeoutMs": 5000
+    },
+    {
+      "id": "screenshot-seguridad-general",
+      "label": "Screenshot with Seguridad General sub-menu visible",
+      "action": "screenshot",
+      "name": "seguridad-general-submenu"
+    },
+    {
+      "id": "probe-scroll-container",
+      "label": "Probe the scroll container geometry",
+      "action": "evaluate",
+      "name": "scrollContainer",
+      "script": "return (() => { const body = document.getElementById('gxui20-hwbwkw01-Gxui_layoutmenu-Center-body'); if (!body) return { error: 'body not found' }; const cs = getComputedStyle(body); const r = body.getBoundingClientRect(); const innerCt = document.getElementById('gxui20-hwbwkw01-Gxui_layoutmenu-Center-innerCt'); return { scrollContainer: { id: body.id, overflowY: cs.overflowY, clientHeight: body.clientHeight, scrollHeight: body.scrollHeight, scrollTop: body.scrollTop, hasScrollbar: body.scrollHeight > body.clientHeight, boundingRect: { x: Math.round(r.x), y: Math.round(r.y), width: Math.round(r.width), height: Math.round(r.height) } }, innerCt: innerCt ? { clientHeight: innerCt.clientHeight, scrollHeight: innerCt.scrollHeight, childCount: innerCt.children.length, children: [...innerCt.children].map(c => ({ id: c.id || null, tag: c.tagName.toLowerCase(), className: String(c.className || '').slice(0, 60), clientHeight: c.clientHeight, scrollHeight: c.scrollHeight, display: getComputedStyle(c).display, visibility: getComputedStyle(c).visibility })) } : null }; })();"
+    },
+    {
+      "id": "probe-all-items",
+      "label": "Count ALL sub-menu items including those below fold",
+      "action": "evaluate",
+      "name": "allSubMenuItems",
+      "script": "return (() => { const selectors = ['#gxui20-hwbwkw01-Gxui_layoutmenu-Center .x-grid-row', '#gxui20-hwbwkw01-Gxui_layoutmenusearch-Center .x-grid-row', '[id*=\"MENU1\"] .x-grid-row', '[id*=\"MENU2\"] .x-grid-row']; let rows = []; let usedSelector = ''; for (const s of selectors) { const found = [...document.querySelectorAll(s)]; if (found.length > 0) { rows = found; usedSelector = s; break; } } const vp = window.innerHeight; const scrollBody = document.getElementById('gxui20-hwbwkw01-Gxui_layoutmenu-Center-body'); return { selectorUsed: usedSelector, totalItems: rows.length, scrollBodyClientHeight: scrollBody ? scrollBody.clientHeight : null, scrollBodyScrollHeight: scrollBody ? scrollBody.scrollHeight : null, items: rows.map((r, i) => { const rect = r.getBoundingClientRect(); return { index: i, text: (r.innerText || '').trim().slice(0, 80), y: Math.round(rect.y), bottom: Math.round(rect.bottom), height: Math.round(rect.height), visible: rect.top >= 0 && rect.bottom <= vp, belowFold: rect.top > vp, aboveFold: rect.bottom < 0 }; }) }; })();"
+    },
+    {
+      "id": "collect-evidence",
+      "action": "collect",
+      "what": ["console", "url", "pageErrors"]
+    }
+  ]
+}

@@ -1,0 +1,162 @@
+{
+  "scenarioName": "recorded report activity - CONTROL MUESTRAS",
+  "targetUrl": "https://dev.puntoexe.com.uy/ECOMETALESJavaSQLServer/com.ecometales.hwbwkw01",
+  "credentials": {
+    "loginUser": "SRIFFO",
+    "loginPassword": "sriffo1407"
+  },
+  "caller": {
+    "source": "urecord",
+    "correlationId": "urecord_2026-06-13_23-03-48-194",
+    "metadata": {
+      "recordedAt": "2026-06-13T23:03:48.193Z",
+      "recordedTitle": "CONTROL MUESTRAS",
+      "recordedDurationMs": "12284"
+    }
+  },
+  "options": {
+    "headless": true,
+    "trace": true,
+    "screenshots": "always",
+    "collectDomOnFailure": true
+  },
+  "steps": [
+    {
+      "id": "open-control-muestras",
+      "label": "Open CONTROL MUESTRAS",
+      "action": "goto",
+      "url": "$targetUrl",
+      "timeoutMs": 30000,
+      "afterWaitFor": {
+        "loadState": "domcontentloaded",
+        "timeoutMs": 30000
+      }
+    },
+    {
+      "id": "wait-for-login-form",
+      "label": "Wait for login form",
+      "action": "waitForSelector",
+      "selector": "#vUSER",
+      "state": "visible",
+      "timeoutMs": 10000
+    },
+    {
+      "id": "fill-login-user",
+      "label": "Fill Usuario",
+      "action": "fill",
+      "selector": "#vUSER",
+      "valueFromCredential": "loginUser",
+      "timeoutMs": 10000
+    },
+    {
+      "id": "blur-login-user",
+      "label": "Blur Usuario",
+      "action": "press",
+      "selector": "#vUSER",
+      "key": "Tab",
+      "timeoutMs": 10000
+    },
+    {
+      "id": "fill-login-password",
+      "label": "Fill Password",
+      "action": "fill",
+      "selector": "#vUSRPSWING",
+      "valueFromCredential": "loginPassword",
+      "timeoutMs": 10000
+    },
+    {
+      "id": "blur-login-password",
+      "label": "Blur Password",
+      "action": "press",
+      "selector": "#vUSRPSWING",
+      "key": "Tab",
+      "timeoutMs": 10000
+    },
+    {
+      "id": "submit-login",
+      "label": "Click Confirmar",
+      "action": "click",
+      "selector": "span[onclick*=\"BTNENTER\"]",
+      "timeoutMs": 10000,
+      "afterWaitFor": {
+        "loadState": "domcontentloaded",
+        "timeoutMs": 10000
+      }
+    },
+    {
+      "id": "gate-login-complete",
+      "label": "Fail fast if login did not reach the app",
+      "action": "waitForUrlContains",
+      "value": "hwbwkw01",
+      "timeoutMs": 15000
+    },
+    {
+      "id": "click-seguridad-otros",
+      "label": "Click Seguridad Otros",
+      "action": "click",
+      "waitFor": {
+        "selector": "[id=\"gxui20-W0024W0008-pxtools-menus-hpexe_gxuitoolbarmenus-Gxui_toolbar1_btn_D         9-btnInnerEl\"]",
+        "state": "visible",
+        "timeoutMs": 30000
+      },
+      "selector": "[id=\"gxui20-W0024W0008-pxtools-menus-hpexe_gxuitoolbarmenus-Gxui_toolbar1_btn_D         9-btnInnerEl\"]",
+      "timeoutMs": 10000,
+      "afterWaitFor": {
+        "loadState": "domcontentloaded",
+        "timeoutMs": 10000
+      }
+    },
+    {
+      "id": "wait-after-seguridad-otros",
+      "label": "Preserve recorded pacing after Seguridad Otros",
+      "action": "waitForElapsed",
+      "sinceStepId": "click-seguridad-otros",
+      "minElapsedMs": 2400,
+      "timeoutMs": 3000
+    },
+    {
+      "id": "click-seguridad-general",
+      "label": "Click Seguridad General",
+      "action": "click",
+      "selector": "[id=\"gxui20-W0024W0008-pxtools-menus-hpexe_gxuitoolbarmenus-Gxui_toolbar1_btn_D         1-btnInnerEl\"]",
+      "timeoutMs": 10000,
+      "afterWaitFor": {
+        "loadState": "domcontentloaded",
+        "timeoutMs": 10000
+      }
+    },
+    {
+      "id": "wait-after-seguridad-general",
+      "label": "Preserve recorded pacing after Seguridad General",
+      "action": "waitForElapsed",
+      "sinceStepId": "click-seguridad-general",
+      "minElapsedMs": 3650,
+      "timeoutMs": 4500
+    },
+    {
+      "id": "click-reportes-generales",
+      "label": "Click Reportes Generales",
+      "action": "click",
+      "selector": "[id=\"gxui20-W0024W0008-pxtools-menus-hpexe_gxuitoolbarmenus-Gxui_toolbar1_btn_D        18-btnInnerEl\"]",
+      "timeoutMs": 10000
+    },
+    {
+      "id": "capture-reportes-generales",
+      "label": "Capture report menu state",
+      "action": "screenshot",
+      "name": "reportes-generales"
+    },
+    {
+      "id": "collect-final-evidence",
+      "label": "Collect final evidence",
+      "action": "collect",
+      "what": [
+        "console",
+        "network",
+        "domText",
+        "url",
+        "pageErrors"
+      ]
+    }
+  ]
+}

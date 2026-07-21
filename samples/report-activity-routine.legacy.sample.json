@@ -1,0 +1,106 @@
+{
+  "scenarioName": "recorded report activity - legacy API compatible",
+  "targetUrl": "https://dev.puntoexe.com.uy/ECOMETALESJavaSQLServer/com.ecometales.hwbwkw01",
+  "credentials": {
+    "loginUser": "test-user",
+    "loginPassword": "test-password"
+  },
+  "options": {
+    "headless": true,
+    "trace": true,
+    "screenshots": "always",
+    "collectDomOnFailure": true
+  },
+  "steps": [
+    {
+      "label": "Open CONTROL MUESTRAS",
+      "action": "goto",
+      "url": "$targetUrl",
+      "timeoutMs": 10000
+    },
+    {
+      "label": "Wait for login form",
+      "action": "waitForSelector",
+      "selector": "#vUSER",
+      "state": "visible",
+      "timeoutMs": 10000
+    },
+    {
+      "label": "Fill Usuario",
+      "action": "fill",
+      "selector": "#vUSER",
+      "valueFromCredential": "loginUser",
+      "timeoutMs": 10000
+    },
+    {
+      "label": "Fill Password",
+      "action": "fill",
+      "selector": "#vUSRPSWING",
+      "valueFromCredential": "loginPassword",
+      "timeoutMs": 10000
+    },
+    {
+      "label": "Click Confirmar",
+      "action": "click",
+      "selector": "#BTNENTER",
+      "timeoutMs": 10000
+    },
+    {
+      "label": "Wait after login",
+      "action": "waitForLoadState",
+      "state": "domcontentloaded",
+      "timeoutMs": 10000
+    },
+    {
+      "label": "Wait for toolbar",
+      "action": "waitForSelector",
+      "selector": "[id=\"gxui20-W0024W0008-pxtools-menus-hpexe_gxuitoolbarmenus-Gxui_toolbar1_btn_D         9-btnInnerEl\"]",
+      "state": "visible",
+      "timeoutMs": 10000
+    },
+    {
+      "label": "Click Seguridad Otros",
+      "action": "click",
+      "selector": "[id=\"gxui20-W0024W0008-pxtools-menus-hpexe_gxuitoolbarmenus-Gxui_toolbar1_btn_D         9-btnInnerEl\"]",
+      "timeoutMs": 10000
+    },
+    {
+      "label": "Pause after Seguridad Otros",
+      "action": "waitForTimeout",
+      "timeoutMs": 2400
+    },
+    {
+      "label": "Click Seguridad General",
+      "action": "click",
+      "selector": "[id=\"gxui20-W0024W0008-pxtools-menus-hpexe_gxuitoolbarmenus-Gxui_toolbar1_btn_D         1-btnInnerEl\"]",
+      "timeoutMs": 10000
+    },
+    {
+      "label": "Pause after Seguridad General",
+      "action": "waitForTimeout",
+      "timeoutMs": 3650
+    },
+    {
+      "label": "Click Reportes Generales",
+      "action": "click",
+      "selector": "[id=\"gxui20-W0024W0008-pxtools-menus-hpexe_gxuitoolbarmenus-Gxui_toolbar1_btn_D        18-btnInnerEl\"]",
+      "timeoutMs": 10000
+    },
+    {
+      "label": "Capture report menu state",
+      "action": "screenshot",
+      "name": "reportes-generales"
+    },
+    {
+      "label": "Collect final evidence",
+      "action": "collect",
+      "what": [
+        "console",
+        "network",
+        "domText",
+        "url",
+        "pageErrors"
+      ]
+    }
+  ]
+}

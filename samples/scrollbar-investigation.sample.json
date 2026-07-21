@@ -1,0 +1,153 @@
+{
+  "scenarioName": "Scrollbar investigation - Sub-Menus left panel",
+  "targetUrl": "https://dev.puntoexe.com.uy/ECOMETALESJavaSQLServer/com.ecometales.hwbwkw01",
+  "credentials": {
+    "loginUser": "SRIFFO",
+    "loginPassword": "sriffo1407"
+  },
+  "caller": {
+    "source": "manual-investigation",
+    "correlationId": "scrollbar-investigation-001",
+    "metadata": {
+      "purpose": "Why does a vertical scrollbar appear in the Sub-Menus left panel after clicking a top-menu item?",
+      "context": "After clicking Seguridad Otros (top toolbar), the left panel shows Sub-Menus with a vertical scrollbar. Investigating container dimensions, overflow settings, item count, and layout constraints."
+    }
+  },
+  "options": {
+    "headless": true,
+    "trace": true,
+    "screenshots": "onFailure",
+    "collectDomOnFailure": true
+  },
+  "steps": [
+    {
+      "id": "open-app",
+      "label": "Open app",
+      "action": "goto",
+      "url": "$targetUrl",
+      "timeoutMs": 30000,
+      "afterWaitFor": { "loadState": "domcontentloaded", "timeoutMs": 30000 }
+    },
+    {
+      "id": "wait-for-login-form",
+      "label": "Wait for login form",
+      "action": "waitForSelector",
+      "selector": "#vUSER",
+      "state": "visible",
+      "timeoutMs": 10000
+    },
+    {
+      "id": "fill-login-user",
+      "label": "Fill Usuario",
+      "action": "fill",
+      "selector": "#vUSER",
+      "valueFromCredential": "loginUser",
+      "timeoutMs": 10000
+    },
+    {
+      "id": "blur-login-user",
+      "label": "Blur Usuario",
+      "action": "press",
+      "selector": "#vUSER",
+      "key": "Tab",
+      "timeoutMs": 10000
+    },
+    {
+      "id": "fill-login-password",
+      "label": "Fill Password",
+      "action": "fill",
+      "selector": "#vUSRPSWING",
+      "valueFromCredential": "loginPassword",
+      "timeoutMs": 10000
+    },
+    {
+      "id": "blur-login-password",
+      "label": "Blur Password",
+      "action": "press",
+      "selector": "#vUSRPSWING",
+      "key": "Tab",
+      "timeoutMs": 10000
+    },
+    {
+      "id": "submit-login",
+      "label": "Click Confirmar",
+      "action": "click",
+      "selector": "span[onclick*=\"BTNENTER\"]",
+      "timeoutMs": 10000,
+      "afterWaitFor": { "loadState": "domcontentloaded", "timeoutMs": 10000 }
+    },
+    {
+      "id": "gate-login-complete",
+      "label": "Fail fast if login did not reach the app",
+      "action": "waitForUrlContains",
+      "value": "hwbwkw01",
+      "timeoutMs": 15000
+    },
+    {
+      "id": "shot-post-login",
+      "label": "Screenshot after login",
+      "action": "screenshot",
+      "name": "01-post-login"
+    },
+    {
+      "id": "click-seguridad-otros",
+      "label": "Click Seguridad Otros (top menu)",
+      "action": "click",
+      "waitFor": {
+        "selector": "[id*=\"Gxui_toolbar1_btn_D         9-btnInnerEl\"]",
+        "state": "visible",
+        "timeoutMs": 20000
+      },
+      "selector": "[id*=\"Gxui_toolbar1_btn_D         9-btnInnerEl\"]",
+      "timeoutMs": 10000,
+      "afterWaitFor": { "loadState": "domcontentloaded", "timeoutMs": 10000 }
+    },
+    {
+      "id": "wait-menu-settle",
+      "label": "Wait for left menu to settle after top-menu click",
+      "action": "waitForElapsed",
+      "sinceStepId": "click-seguridad-otros",
+      "minElapsedMs": 2500,
+      "timeoutMs": 5000
+    },
+    {
+      "id": "shot-left-panel",
+      "label": "Screenshot with left panel visible",
+      "action": "screenshot",
+      "name": "02-left-panel-seguridad-otros"
+    },
+    {
+      "id": "probe-scrollbar",
+      "label": "Deep probe: left panel scroll geometry and all menu items",
+      "action": "evaluate",
+      "name": "scrollbarProbe",
+      "script": "return (() => { function elInfo(sel, label) { const e = typeof sel === 'string' ? document.querySelector(sel) : sel; if (!e) return { label, exists: false }; const cs = getComputedStyle(e); const r = e.getBoundingClientRect(); return { label, exists: true, id: e.id || null, tag: e.tagName.toLowerCase(), className: String(e.className || '').slice(0, 200), overflow: cs.overflow, overflowY: cs.overflowY, overflowX: cs.overflowX, height: cs.height, maxHeight: cs.maxHeight, clientHeight: e.clientHeight, scrollHeight: e.scrollHeight, scrollTop: e.scrollTop, hasVerticalScroll: e.scrollHeight > e.clientHeight, boundingRect: { x: Math.round(r.x), y: Math.round(r.y), width: Math.round(r.width), height: Math.round(r.height) }, childCount: e.children.length }; } const leftPanel = document.querySelector('[id*=\"layoutmain-West\"]') || document.querySelector('[id*=\"layout-West\"]'); const menuSearchPanel = document.getElementById('gxui20-hwbwkw01-Gxui_layoutmenusearch-Center'); const menuPanel = document.getElementById('gxui20-hwbwkw01-Gxui_layoutmenu-Center'); const treeContainer = document.getElementById('W0047W0003GXUI_TREEVIEW1Container'); const menuContainer = document.getElementById('W0047W0003GXUI_MENU1Container'); const allMenuRows = [...document.querySelectorAll('.x-grid-row, .x-tree-node, [id*=\"gxui\"] li, [id*=\"MENU\"] .x-grid-row')]; const subMenusLabel = [...document.querySelectorAll('*')].find(e => e.innerText && e.innerText.trim() === 'Sub-Menús'); const subMenusContainer = subMenusLabel ? subMenusLabel.closest('[id]') : null; const allScrollableEls = [...document.querySelectorAll('*')].filter(e => { const cs = getComputedStyle(e); return (cs.overflowY === 'auto' || cs.overflowY === 'scroll') && e.scrollHeight > e.clientHeight && e.clientHeight > 50; }); const menuItems = [...document.querySelectorAll('[id*=\"MENU\"] .x-grid-row, [id*=\"layoutmenusearch-Center\"] .x-grid-row, [id*=\"layoutmenu-Center\"] .x-grid-row, [id*=\"TREEVIEW\"] .x-grid-row')]; return { url: location.href, viewportWidth: window.innerWidth, viewportHeight: window.innerHeight, leftPanel: elInfo(leftPanel, 'leftPanel'), menuSearchPanel: elInfo(menuSearchPanel, 'Gxui_layoutmenusearch-Center'), menuPanel: elInfo(menuPanel, 'Gxui_layoutmenu-Center'), treeContainer: elInfo(treeContainer, 'GXUI_TREEVIEW1Container'), menuContainer: elInfo(menuContainer, 'GXUI_MENU1Container'), subMenusContainer: subMenusContainer ? elInfo(subMenusContainer, 'subMenusContainer-' + subMenusContainer.id) : null, scrollableElements: allScrollableEls.slice(0, 10).map((e, i) => elInfo(e, 'scrollable-' + i + '-' + (e.id || e.className.slice(0, 30)))), menuItemCount: menuItems.length, menuItemTexts: menuItems.map(r => (r.innerText || '').trim().slice(0, 80)).filter(Boolean), allRowsCount: allMenuRows.length }; })();"
+    },
+    {
+      "id": "probe-scroll-ancestors",
+      "label": "Walk up scroll-ancestor chain from menu rows",
+      "action": "evaluate",
+      "name": "scrollAncestors",
+      "script": "return (() => { const rows = document.querySelectorAll('[id*=\"layoutmenusearch-Center\"] .x-grid-row, [id*=\"layoutmenu-Center\"] .x-grid-row, [id*=\"MENU\"] .x-grid-row'); const firstRow = rows[0]; if (!firstRow) return { error: 'no menu rows found', allIds: [...document.querySelectorAll('[id]')].filter(e => e.id.toLowerCase().includes('menu') || e.id.toLowerCase().includes('sub')).map(e => e.id).slice(0, 50) }; const ancestors = []; let el = firstRow; while (el && el !== document.body && ancestors.length < 20) { const cs = getComputedStyle(el); const r = el.getBoundingClientRect(); ancestors.push({ id: el.id || null, tag: el.tagName.toLowerCase(), className: String(el.className || '').slice(0, 80), overflow: cs.overflow, overflowY: cs.overflowY, height: cs.height, clientHeight: el.clientHeight, scrollHeight: el.scrollHeight, isScrollContainer: el.scrollHeight > el.clientHeight && (cs.overflowY === 'auto' || cs.overflowY === 'scroll'), boundW: Math.round(r.width), boundH: Math.round(r.height) }); el = el.parentElement; } return { firstRowText: (firstRow.innerText || '').trim(), ancestors }; })();"
+    },
+    {
+      "id": "probe-all-menu-items-with-position",
+      "label": "Get all menu items with bounding rects to see which are off-screen",
+      "action": "evaluate",
+      "name": "menuItemPositions",
+      "script": "return (() => { const selectors = ['[id*=\"layoutmenusearch-Center\"] .x-grid-row', '[id*=\"layoutmenu-Center\"] .x-grid-row', '[id*=\"MENU1\"] .x-grid-row', '[id*=\"MENU2\"] .x-grid-row', '[id*=\"TREEVIEW\"] .x-grid-row']; let rows = []; for (const s of selectors) { const found = [...document.querySelectorAll(s)]; if (found.length > 0) { rows = found; break; } } const vh = window.innerHeight; return { selectorUsed: rows.length > 0 ? 'found rows' : 'no rows', totalItems: rows.length, items: rows.map((r, i) => { const rect = r.getBoundingClientRect(); const cs = getComputedStyle(r); return { index: i, text: (r.innerText || '').trim().slice(0, 80), y: Math.round(rect.y), height: Math.round(rect.height), bottom: Math.round(rect.bottom), visible: rect.top >= 0 && rect.bottom <= vh, belowFold: rect.top > vh, aboveFold: rect.bottom < 0, display: cs.display, visibility: cs.visibility }; }) }; })();"
+    },
+    {
+      "id": "shot-after-probes",
+      "label": "Final screenshot after all probes",
+      "action": "screenshot",
+      "name": "03-after-probes"
+    },
+    {
+      "id": "collect-evidence",
+      "label": "Collect final evidence",
+      "action": "collect",
+      "what": ["console", "network", "domText", "url", "pageErrors"]
+    }
+  ]
+}
